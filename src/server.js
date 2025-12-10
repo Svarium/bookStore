@@ -8,8 +8,12 @@ const authRoutes = require("./routes/auth.routes");
 const cartRoutes = require("./routes/cart.routes");
 const favsRoutes = require("./routes/favorites.routes");
 const usersRoutes = require("./routes/user.routes");
+const connectDB = require("./config/database");
 
 const app = express();
+
+//Conexión a la base de datos
+connectDB()
 
 
 //MIDDLEWARES
