@@ -70,22 +70,11 @@ const login = async (req, res) => {
 
         const {email, password} = req.body;
 
-         //validar que llegue la info basica
-         if(!email || !password){
-            return res.status(400).json({
-                ok:false,
-                message: 'Todos los campos son obligatorios 🤬'
-            })
-        }
+         
 
         const user = await User.findOne({email, password});
 
-        if(!user){
-            return res.status(401).json({
-                ok:false,
-                message: 'Credenciales incorrectas'
-            })
-        }
+    
 
         return res.status(200).json({
             ok:true,
@@ -113,23 +102,6 @@ const updateUserRole = async (req, res) => {
         const {id} = req.params;
         const {role} = req.body;
 
-       if(!role){
-        return res.status(400).json({
-            ok:false, 
-            message: 'El rol es requerido'
-        })
-       } 
-
-       //Validamos que el rol sea el correcto. 
-       const allowRoles = ['user', 'admin', 'superadmin'];
-
-       if(!allowRoles.includes(role)){
-        return res.status(400).json({
-            ok:false, 
-            message: `El rol debe ser uno de los siguientes: ${allowRoles.join(', ')}`
-        })
-       }
-
        //buscar y actualizar el usuario
        const updateUser = await User.findByIdAndUpdate(
         id,
@@ -137,12 +109,6 @@ const updateUserRole = async (req, res) => {
         {new: true, runValidators:true}
        ).select("-password");
 
-       if(!updateUser){
-        return res.status(404).json({
-            ok:false, 
-            message: `Usuario no encontrado`
-        })
-       }
 
        return res.status(200).json({
         ok:true, 
@@ -169,13 +135,6 @@ const deleteUser = async (req,res) => {
         const {id} = req.params;
 
         const deletedUser = await User.findByIdAndDelete(id).select("-password");
-
-        if(!deletedUser){
-            return res.status(404).json({
-                ok:false,
-                message: 'Usuario no encontrado'
-            })
-        }
 
         return res.status(200).json({
             ok:true,
