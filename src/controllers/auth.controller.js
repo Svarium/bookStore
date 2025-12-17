@@ -42,7 +42,8 @@ const register = async (req, res) => {
         const newUser = await User.create({
             name, 
             email, 
-            password,            
+            password,
+            profilePic: req.file ? req.file.filename  : null          
         });
 
         return res.status(201).json({
@@ -52,7 +53,8 @@ const register = async (req, res) => {
                 id: newUser._id,
                 name: newUser.name,
                 email: newUser.email,
-                role: newUser.role
+                role: newUser.role,
+                photo: newUser.profilePic
             },
         })
             

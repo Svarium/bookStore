@@ -1,5 +1,6 @@
 const { body, param, validationResult } = require("express-validator");
 const User = require("../models/User");
+const { deleteOneFile } = require("../utils/fileCleanup");
 const ROLE_SUPERADMIN = "superadmin"
 
 //middlware para manejar los errores de validacion
@@ -34,13 +35,16 @@ const validateRegister = [
     .isEmail()
     .withMessage("El email no tiene un formato válido")
     .normalizeEmail()
-    .custom(async (email) => {
+    .custom(async (email, {req}) => {
       const user = await User.findOne({ email });
       if (user) {
+       //y si ademas ese usuario tiene una foto de perfil cargada
+       if(req.file){
+        deleteOneFile(req.file.path)
+       }
         throw new Error("El usuario ya existe");
       }
     }),
-
   body("password")
     .notEmpty()
     .withMessage("La contraseña es requerida")

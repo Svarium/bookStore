@@ -1,6 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 const morgan = require("morgan");
+const path = require('path')
 
 //IMPORTAR LOS ARCHIVOS DE LOS ENRUTADORES
 const productRoutes = require("./routes/product.routes");
@@ -20,6 +21,10 @@ connectDB()
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({extended: true})); //PARA QUE EXPRESS PUEDA LEER LOS DATOS DE FORMULARIOS
+
+
+//Servir archivos estáticos (imágenes u otros archivos)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 // UTILIZO LOS ENRUTADORES
 app.use("/api/v1/products", productRoutes);
