@@ -32,10 +32,12 @@ const getAllUsers = async (req,res) => {
     }
 }
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {  
+         
+    const miArray = null
+    return miArray.forEach(a => console.log("Elementos"))
     
         try {
-
         const {name, email, password} = req.body;      
 
         //Crear el usuario con mongoose
@@ -59,11 +61,7 @@ const register = async (req, res) => {
         })
             
         } catch (error) {
-            console.error(error)
-            return res.status(500).json({
-                ok:false, 
-                message: error.message
-            })
+            next(error)
         }
 }
 

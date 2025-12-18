@@ -17,7 +17,19 @@ const deleteOneFile = (filePath) => {
 
 
 
+//Eliminar archivos subidos pir multer (req.file o req.files)
+const cleanUploadsFiles = (req) => {
+    if(req.file){
+        deleteOneFile(req.file.path)
+    }
+
+    if(req.files && Array.isArray(req.files)){
+        req.files.forEach(file => deleteOneFile(file.path))
+    }
+}
+
 
 module.exports = {
-    deleteOneFile
+    deleteOneFile,
+    cleanUploadsFiles
 }
