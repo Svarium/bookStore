@@ -18,6 +18,25 @@ const handleValidationsErrors = (req, res, next) => {
   next();
 };
 
+const handleValidationsErrorsWithFiles = (req, res, next) => {
+  const errors = validationResult(req);
+
+  if(!errors.isEmpty()){
+    //si hay errores y si se subio archivo, necesito eliminarlo
+    if(req.file){
+      deleteOneFile(req.file.path)
+    }
+
+    return res.status(400).json({
+      ok: false,
+      message: "Errores de validación",
+      errors: errors.mapped(),
+    });
+  }
+
+  next()
+}
+
 //Validaciones para el registro de un usuario
 const validateRegister = [
   body("name")
@@ -35,23 +54,20 @@ const validateRegister = [
     .isEmail()
     .withMessage("El email no tiene un formato válido")
     .normalizeEmail()
-    .custom(async (email, {req}) => {
+    .custom(async (email) => {
       const user = await User.findOne({ email });
-      if (user) {
-       //y si ademas ese usuario tiene una foto de perfil cargada
-       if(req.file){
-        deleteOneFile(req.file.path)
-       }
+      if (user) {      
         throw new Error("El usuario ya existe");
       }
     }),
+
   body("password")
     .notEmpty()
     .withMessage("La contraseña es requerida")
     .isLength({ min: 6 })
     .withMessage("la contraseña debe tener por lo menos 6 caracteres"),
 
-  handleValidationsErrors,
+    handleValidationsErrorsWithFiles,
 ];
 
 //Validación del login
