@@ -1,10 +1,15 @@
 //Este va a ser el modelo de usuarios. 
 //Paso 1 - requerir mongoose
 const mongoose = require("mongoose");
+const bcrypt = require('bcryptjs');
 
 //Paso 2 - Vamos a crear el esquema del usuario
 const userSchema = new mongoose.Schema({
     name: {
+        type: String,
+        required: true
+    },
+    surname: {
         type: String,
         required: true
     },
@@ -26,9 +31,37 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin', 'superadmin'],
         default: 'user'
     },
+    verifiedEmail:{
+        type:Boolean,
+        default: false
+    },
+    verificationCode:{
+        type: String,
+        default: null
+    },
+    codeExpiration:{
+        type: Date,
+        default: null
+    }
 },{
    timestamps:true 
 });
+
+// hash de la password antes de guardar el usuario
+userSchema.pre('save', async function (){
+    if(!this.isModified('password')) return;
+
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+})
+
+//Método para comparar passwords
+userSchema.methods.comparePasswords = async function (userPassword){
+    return await bcrypt.compare(userPassword, this.password)
+}
+
+// Método para generar código de verificación (email)
+
 
 //Paso 3 - Exportar el modelo del usuario (con mongoose.model que requiere dos parámetros: 1- Alias | 2-- Schema )
 module.exports = mongoose.model("User", userSchema);

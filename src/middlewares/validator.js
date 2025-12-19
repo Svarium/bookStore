@@ -48,6 +48,15 @@ const validateRegister = [
     .isLength({ min: 2 })
     .withMessage("El nombre debe tener al menos 2 caracteres"),
 
+    body("surname")
+    .notEmpty()
+    .withMessage("El apellido es requerido")
+    .isString()
+    .withMessage("El apellido debe ser un texto")
+    .trim()
+    .isLength({ min: 2 })
+    .withMessage("El apellido debe tener al menos 2 caracteres"),
+
   body("email")
     .notEmpty()
     .withMessage("El email es requerido")

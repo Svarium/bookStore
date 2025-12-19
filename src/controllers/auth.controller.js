@@ -32,17 +32,15 @@ const getAllUsers = async (req,res) => {
     }
 }
 
-const register = async (req, res, next) => {  
-         
-    const miArray = null
-    return miArray.forEach(a => console.log("Elementos"))
+const register = async (req, res, next) => {           
     
         try {
-        const {name, email, password} = req.body;      
+        const {name, surname, email, password} = req.body;      
 
         //Crear el usuario con mongoose
         const newUser = await User.create({
             name, 
+            surname,
             email, 
             password,
             profilePic: req.file ? req.file.filename  : null          
@@ -68,13 +66,9 @@ const register = async (req, res, next) => {
 const login = async (req, res) => {
         try {
 
-        const {email, password} = req.body;
-
-         
+        const {email, password} = req.body;    
 
         const user = await User.findOne({email, password});
-
-    
 
         return res.status(200).json({
             ok:true,
