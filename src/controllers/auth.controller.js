@@ -1,5 +1,6 @@
 //MINI CRUD DE USUARIO  -  AUTH
 const User = require('../models/User');
+const { sendVerificationEmail } = require('../utils/emailService');
 
 
 const getAllUsers = async (req,res) => {
@@ -32,7 +33,7 @@ const getAllUsers = async (req,res) => {
     }
 }
 
-const register = async (req, res, next) => {           
+const register = async (req, res, next) => {          
     
         try {
         const {name, surname, email, password} = req.body;      
@@ -46,6 +47,25 @@ const register = async (req, res, next) => {
             profilePic: req.file ? req.file.filename  : null          
         });
 
+        //llamar al método del usuario que crea el código de verificación
+        const code = newUser.generateVerificationCode();
+        await newUser.save();
+
+        //enviar el codigo via email con la función de nodemailer
+        try {            
+        await sendVerificationEmail(email, name, code)            
+        } catch (emailError) {
+            //Si falla el envio del email, eliminar el usuario y foto
+            await User.findByIdAndDelete(newUser._id);
+            if(req.file){
+                (req.file.path)
+            }
+            return res.status(500).json({
+                ok:false,
+                message: "Error al enviar el email de verificación. Por favor, intenta nuevamente"
+            })
+        }     
+
         return res.status(201).json({
             ok: true,
             message: 'Usuario registrado con exito!!',
@@ -56,11 +76,14 @@ const register = async (req, res, next) => {
                 role: newUser.role,
                 photo: newUser.profilePic
             },
-        })
-            
+        })            
         } catch (error) {
             next(error)
         }
+}
+
+const verifyEmail = async (req, res, next) => {
+
 }
 
 const login = async (req, res) => {
@@ -153,5 +176,6 @@ module.exports = {
     login,
     getAllUsers,
     updateUserRole,
-    deleteUser  
+    deleteUser,
+    verifyEmail
 }

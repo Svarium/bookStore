@@ -17,7 +17,7 @@ const deleteOneFile = (filePath) => {
 
 
 
-//Eliminar archivos subidos pir multer (req.file o req.files)
+//Eliminar archivos subidos por multer (req.file o req.files)
 const cleanUploadsFiles = (req) => {
     if(req.file){
         deleteOneFile(req.file.path)

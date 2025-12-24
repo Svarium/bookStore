@@ -61,6 +61,12 @@ userSchema.methods.comparePasswords = async function (userPassword){
 }
 
 // Método para generar código de verificación (email)
+userSchema.methods.generateVerificationCode = function () {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    this.verificationCode = code;
+    this.codeExpiration = new Date(Date.now() + 15 * 60 * 1000); //15 minutos
+    return code;
+}
 
 
 //Paso 3 - Exportar el modelo del usuario (con mongoose.model que requiere dos parámetros: 1- Alias | 2-- Schema )
