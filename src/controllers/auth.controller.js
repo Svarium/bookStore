@@ -84,6 +84,50 @@ const register = async (req, res, next) => {
 
 const verifyEmail = async (req, res, next) => {
 
+    try {
+
+        const {email, code} = req.body;
+
+        // Si el email ya está verificado ¿?
+        const user = await User.findOne({email});
+
+        if(user.verifiedEmail){
+            return res.status(400).json({
+                success: false,
+                message: "El Email ya está verificado"
+            })
+        }
+
+        // Verificar el código y su expiración
+        if(user.verificationCode !== code){
+            return res.status(400).json({
+                success: false,
+                message: 'Codigo de verificación incorrecto'
+            })
+        }
+
+        if(new Date() > user.codeExpiration){
+           return res.status(400).json({
+            success: false,
+            message: 'El código de verificación expiró'
+           }) 
+        }
+
+        // Marcar el email del usuario como verificado
+        user.verifiedEmail = true;
+        user.verificationCode = null;
+        user.codeExpiration = null;
+        await user.save(); //me siento en la hoguera para salvar el punto
+
+        return res.status(200).json({
+            success: true,
+            message: 'Email verificado exitosamente. Ahora podes iniciar sesión'
+        })
+        
+    } catch (error) {
+        next(error)
+    }
+
 }
 
 const login = async (req, res) => {

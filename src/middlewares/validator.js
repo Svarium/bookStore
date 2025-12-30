@@ -150,7 +150,13 @@ const validateSuperAdmin = [
 const validateVerifyEmail = [
     body('email')
     .isEmail().withMessage('Email inválido')
-    .normalizeEmail(),
+    .normalizeEmail()
+    .custom(async (email) => {
+      const user = await User.findOne({ email });
+      if (!user) {      
+        throw new Error("Usuario no encontrado");
+      }
+    }),
     body('code')
     .isLength({min:6, max:6}).withMessage('El código debe tener 6 dígitos')
     .isNumeric().withMessage('El código debe ser numérico'),

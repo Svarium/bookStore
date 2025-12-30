@@ -69,5 +69,7 @@ userSchema.methods.generateVerificationCode = function () {
 }
 
 
+
+
 //Paso 3 - Exportar el modelo del usuario (con mongoose.model que requiere dos parámetros: 1- Alias | 2-- Schema )
 module.exports = mongoose.model("User", userSchema);
