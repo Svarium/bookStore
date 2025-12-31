@@ -99,12 +99,7 @@ const validateLogin = [
     .withMessage("La contraseña es requerida")
     .isLength({ min: 6 })
     .withMessage("La contraseña debe tener al menos 6 carácteres")
-    .custom(async (password) => {
-      const user = await User.findOne({ password });
-      if (!user) {
-        throw new Error("Credencial incorrecta");
-      }
-    }),
+   ,
   handleValidationsErrors,
 ];
 

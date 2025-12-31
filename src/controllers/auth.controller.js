@@ -1,6 +1,14 @@
 //MINI CRUD DE USUARIO  -  AUTH
 const User = require('../models/User');
 const { sendVerificationEmail } = require('../utils/emailService');
+const jwt = require('jsonwebtoken');
+
+// Función auxiliar para poder generar el token
+const generateToken = (id) => {
+    return jwt.sign({id}, process.env.JWT_SECRET,{
+        expiresIn: '1h'
+    });
+};
 
 
 const getAllUsers = async (req,res) => {
@@ -135,7 +143,10 @@ const login = async (req, res) => {
 
         const {email, password} = req.body;    
 
-        const user = await User.findOne({email, password});
+        const user = await User.findOne({email});
+
+        // Trabajar con el token y la cookie
+        
 
         return res.status(200).json({
             ok:true,
