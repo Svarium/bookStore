@@ -2,6 +2,7 @@
 const User = require('../models/User');
 const { sendVerificationEmail } = require('../utils/emailService');
 const jwt = require('jsonwebtoken');
+const { deleteOneFile } = require('../utils/fileCleanup');
 
 // Función auxiliar para poder generar el token
 const generateToken = (id) => {
@@ -10,36 +11,6 @@ const generateToken = (id) => {
     });
 };
 
-
-const getAllUsers = async (req,res) => {
-    try {
-     const users = await User.find().select("-password");
-
-     // validamos que existan usuarios para enviar mensaje al front
-     if(users.length === 0){
-        return res.status(404).json({
-            ok:false, 
-            message: "No se encontraron usuarios en la base de datos 😥"
-        })
-     }
-
-     return res.status(200).json({
-        ok:true,
-        message:"Usuarios obtenidos correctamente",
-        data: {
-            length: users.length,
-            users
-        }
-     }) 
-         
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({
-            ok:false, 
-            message: error.message
-        })
-    }
-}
 
 const register = async (req, res, next) => {          
     
@@ -138,24 +109,52 @@ const verifyEmail = async (req, res, next) => {
 
 }
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
         try {
 
         const {email, password} = req.body;    
 
         const user = await User.findOne({email});
 
-        // Trabajar con el token y la cookie
+        //Verificar la password
+        const validPassword = await user.comparePasswords(password);
+        
+        if(!validPassword){
+            return res.status(401).json({
+                ok:false,
+                message:'Credenciales inválidas ❌'
+            })
+        }
+
+       //Validar que el email del usuario este verificado 
+       if(!user.verifiedEmail){
+        return res.status(403).json({
+            ok:false,
+            message:"Debes Verificar tu email para poder iniciar sesión 💻"
+        })
+       }
+
+       //Generar token
+       const token = generateToken(user._id);
+
+
+       // Enviar/responder una cookie con el token
+       res.cookie('token', token, {
+        httpOnly:true,
+        sameSite:'lax',
+        maxAge: 60 * 60 * 1000, //1hs
+        secure: true
+       })
         
 
         return res.status(200).json({
             ok:true,
             message: 'Login Exitoso 🚀',
-            user:{
+            data:{
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
             },
         })
             
@@ -167,6 +166,109 @@ const login = async (req, res) => {
             })
         }
 }
+
+const logout = async (req,res, next) => {
+    try {
+    res.clearCookie('token');
+    return res.status(200).json({
+        ok:true, 
+        message: 'Logout exitoso!'
+    })         
+    } catch (error) {
+        next(error)
+    }
+}
+
+const getUserProfile = async (req,res, next) => {
+    try {
+        
+     const user = await User.findById(req.user._id)
+     .select('-password -verificationCode -codeExpiration')
+     ;
+     
+     return res.status(200).json({
+        ok:true,
+        message: "Perfil del usuario obtenido correctamente",
+        data: user
+     })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+const updateProfilePhoto = async (req,res, next) => {
+    try {
+
+        // validamos que el usuario suba una foto
+        if(!req.file){
+            return res.status(400).json({
+                ok:false,
+                message:"no se proporcionó ninguna imagen"
+            })
+        }
+
+        const user = await User.findById(req.user._id)
+        .select('-password -verificationCode -codeExpiration')
+        ;
+
+        // Eliminar la foto anterior si es que existe
+        if(user.profilePic){
+            const path = require('path');
+            const previousPhoto = path.join(__dirname, '../../uploads/profiles',user.profilePic)
+            deleteOneFile(previousPhoto)
+        }
+
+        // Actualizar con la nueva foto que envie el usuario
+        user.profilePic = req.file.filename;
+        await user.save()
+
+        //enviamos la respuesta
+        return res.status(201).json({
+            ok:true,
+            message:"foto de perfil actualizada 😊",
+            data: user.profilePic
+        })
+        
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+
+/* 
+
+const getAllUsers = async (req,res) => {
+    try {
+     const users = await User.find().select("-password");
+
+     // validamos que existan usuarios para enviar mensaje al front
+     if(users.length === 0){
+        return res.status(404).json({
+            ok:false, 
+            message: "No se encontraron usuarios en la base de datos 😥"
+        })
+     }
+
+     return res.status(200).json({
+        ok:true,
+        message:"Usuarios obtenidos correctamente",
+        data: {
+            length: users.length,
+            users
+        }
+     }) 
+         
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            ok:false, 
+            message: error.message
+        })
+    }
+}
+
 
 const updateUserRole = async (req, res) => {
     try {
@@ -223,14 +325,15 @@ const deleteUser = async (req,res) => {
     }
 }
 
+ */
 
 
 
 module.exports = {
     register, 
     login,
-    getAllUsers,
-    updateUserRole,
-    deleteUser,
-    verifyEmail
+    verifyEmail,
+    logout,
+    getUserProfile,
+    updateProfilePhoto
 }

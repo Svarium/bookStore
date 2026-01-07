@@ -22,7 +22,7 @@ connectDB()
 //MIDDLEWARES
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(express.urlencoded({extended: true})); //PARA QUE EXPRESS PUEDA LEER LOS DATOS DE FORMULARIOS
 
 
