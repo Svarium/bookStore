@@ -12,11 +12,15 @@ const favsRoutes = require("./routes/favorites.routes");
 const usersRoutes = require("./routes/user.routes");
 const connectDB = require("./config/database");
 const errorHandler = require("./middlewares/errorHandler");
+const createSuperAdmin = require("./utils/createSuperAdmin");
 
 const app = express();
 
 //Conexión a la base de datos
 connectDB()
+
+//Llamo a la función que crea al superadmin
+createSuperAdmin();
 
 
 //MIDDLEWARES
