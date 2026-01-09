@@ -18,7 +18,7 @@ const createSuperAdmin = async () => {
             password: process.env.ADMIN_PASSWORD,
             name: process.env.ADMIN_NAME,
             surname: process.env.ADMIN_LASTNAME,
-            rol:'superadmin',
+            role:'superadmin',
             verifiedEmail: true
          })
 
