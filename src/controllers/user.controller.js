@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const { deleteOneFile } = require('../utils/fileCleanup');
+const { deleteOneFile, getCompleteRoute } = require('../utils/fileCleanup');
 
 
 const getAllUsers = async (req,res) => {
@@ -33,7 +33,28 @@ const getAllUsers = async (req,res) => {
     }
 }
 
-//GET USER BY ID
+const getUserById = async (req, res, next) => {
+    try {
+    const user = await User.findById(req.params.id)
+    .select('-password --verificationCode -codeExpiration')  
+    
+    if(!user){
+        return res.status(404).json({
+            ok:false,
+            message:  'Usuario no encontrado'
+        })
+    }
+
+    return res.status(200).json({
+        ok:true,
+        message:'Usuario encontrado',
+        data:user
+    })
+        
+    } catch (error) {
+        next(error)
+    }
+}
 
 const updateUserRole = async (req, res) => {
     try {
@@ -72,11 +93,22 @@ const updateUserRole = async (req, res) => {
 const deleteUser = async (req,res) => {
     try {
         const {id} = req.params;
+
+        const user = await User.findById(id);
+
         //Proteger al superadmin del borrado!!!!!!!!!!!!!!
-
-
+        if(user.role === process.env.SUPER_ADMIN_ROLE){
+            return res.status(403).json({
+                ok:false,
+                message: "NO se puede eliminar a este usuario ⛔❌🗑"
+            })
+        }
 
         //Si existe un archivo guardado como foto de perfil borrarla
+        if(user.profilePic){
+            const photoPath = getCompleteRoute(user.profilePic, 'profiles');
+            deleteOneFile(photoPath)
+        }
 
 
         //Elimino el usuario
@@ -102,5 +134,6 @@ const deleteUser = async (req,res) => {
 module.exports = {
     deleteUser,
     updateUserRole,
-    getAllUsers
+    getAllUsers,
+    getUserById
 }
