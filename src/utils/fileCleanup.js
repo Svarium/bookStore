@@ -15,7 +15,18 @@ const deleteOneFile = (filePath) => {
     }
 }
 
+//Eliminar multiples archivos
+const deleteFiles = (filePaths) => {
+    if(!Array.isArray(filePaths)){
+        filePaths = [filePaths]
+    }
 
+    filePaths.forEach(filePath => {
+        if(filePath){
+            deleteOneFile(filePath)
+        }
+    });
+}
 
 //Eliminar archivos subidos por multer (req.file o req.files)
 const cleanUploadsFiles = (req) => {
@@ -37,5 +48,6 @@ const getCompleteRoute = (filename, type) => {
 module.exports = {
     deleteOneFile,
     cleanUploadsFiles,
-    getCompleteRoute
+    getCompleteRoute,
+    deleteFiles
 }

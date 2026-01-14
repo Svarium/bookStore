@@ -14,7 +14,23 @@ const profileStorage = multer.diskStorage({
     },
 
     filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '- profile -' + crypto.randomUUID() + path.extname(file.originalname);
+        const uniqueSuffix = Date.now() + '-profile-' + crypto.randomUUID() + path.extname(file.originalname);
+        cb(null, uniqueSuffix)
+    }   
+});
+
+//Configuracion de almacenamiento de las imagenes para los productos
+const productsStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const  uploadPath = path.join(__dirname, '../../uploads/products');
+        if(!fs.existsSync(uploadPath)){
+            fs.mkdirSync(uploadPath, {recursive: true})
+        }
+        cb(null, uploadPath)
+    },
+
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-product-' + crypto.randomUUID() + path.extname(file.originalname);
         cb(null, uniqueSuffix)
     }   
 });
@@ -40,7 +56,15 @@ const uploadProfile = multer({
     fileFilter: fileFilter
 }).single('profilePic');
 
+//Configuración para la subida de las imagenes de los libros (1-3 máximo | max 2MB c/u)
+const uploadProductImages = multer({
+    storage: productsStorage,
+    limits: {fileSize: 2 * 1024 * 1024}, //2MB
+    fileFilter: fileFilter
+}).array('productImages', 3);// array me permite subir hasta 3 archivos. 
+
 //exportar la función
 module.exports = {
     uploadProfile,
+    uploadProductImages
 }
