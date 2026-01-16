@@ -24,6 +24,7 @@ const productSchema = new mongoose.Schema({
     genre:{
         type:String,
         required:true,
+        enum: ['fantasia', 'policial', 'manga', 'cientifico', 'novela', 'terror', 'otros'],       
         trim: true
     },
     publisher:{
@@ -47,10 +48,7 @@ const productSchema = new mongoose.Schema({
     timestamps:true
 });
 
-// Validación: mínimo me pida 1 imagen, máximo 3.
-productSchema.path('images').validate(function(value){
-    return value.length >= 1 && value.lengt <= 3;
-}, 'Debe haber entre 1 y 3 imágenes');
+
 
 
 
