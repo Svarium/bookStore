@@ -2,7 +2,7 @@
 const express = require("express");
 const { uploadProductImages } = require("../config/multer");
 const { validateProduct, validateMongoID, validateUpdateProduct } = require("../middlewares/validator");
-const { createProduct, getAllProducts, updateProduct } = require("../controllers/product.controller");
+const { createProduct, getAllProducts, updateProduct, deleteProduct, searchProduct, getProductById } = require("../controllers/product.controller");
 const { verifyAuth, verifyAdmin } = require("../middlewares/auth");
 
 const router = express.Router();
@@ -11,8 +11,8 @@ const router = express.Router();
 
 // --> RUTAS PUBLICAS PARA TODOS LOS USUARIOS 
 router.get('/', getAllProducts)
-//router.get('/search', )
-//router.get('/:id', )
+router.get('/search', searchProduct)
+router.get('/:id',getProductById)
 
 // --> RUTAS PRIVADAS (SOLO ADMIN Y SUPER ADMIN)
 router.post(
@@ -33,7 +33,13 @@ router.put(
     updateProduct
 )
 
-//router.delete('/:id', )
+router.delete(
+    '/:id',
+    verifyAuth,
+    verifyAdmin,
+    validateMongoID,
+    deleteProduct
+)
 
 
 module.exports = router;

@@ -17,6 +17,7 @@ const getAllProducts = async (req,res,next) => {
         return res.status(200).json({
             ok:true,
             message: 'Lista de libros obtenida correctamente 📚',
+            lenght: products.length,
             data:products
         })
         
@@ -26,10 +27,78 @@ const getAllProducts = async (req,res,next) => {
 }
 
 //Buscar un producto
+const searchProduct = async (req,res,next) => {
+    try {
+        //1. Capturar los parámetros de busqueda de la query
+        const {genre, author, title} = req.query;
 
+        //2. Inicializar variable para filtros
+        let filters = {}; //porque mongoose espera un objeto en los filtros
+
+        //3. Añadir filtros al objeto pero de manera condicional
+        if(genre){
+            filters.genre = {$regex: genre, $options: 'i'}
+        }
+
+        if(author){
+            filters.author = {$regex: author, $options: 'i'}
+        }
+
+        if(title){
+            filters.title = {$regex: title, $options: 'i'}
+        }
+
+        //4. Aplico los filtros directamente el el metodo find de mongoose
+        const products = await Product.find(filters).sort({createdAt:-1});
+
+        //5. Si no encontró porductos doy una respuesta
+        if(!products || products.length === 0){
+            return res.status(404).json({
+                ok:false,
+                message:'No se encontraron coincidencias para la busqueda'
+            })
+        }
+
+        //6. Respuesa al cliente con los resultados
+        return res.json({
+            ok:true,
+            message:'Productos encontrados 📚',
+            length: products.length,
+            data: products
+        })
+
+        
+    } catch (error) {
+        next(error)
+    }
+}
 
 //Obtener un producto por su ID
+const getProductById = async (req,res,next) => {
+    try {       
 
+        //1. Buscar el producto en MONGO
+        const product = await Product.findById(req.params.id)
+        
+        //2. Validar que el producto exista
+        if(!product){
+            return res.status(404).json({
+                ok:false,
+                message:'Producto no encontrado'
+            })
+        }
+
+        //3. Respuesta al cliente
+        return res.status(200).json({
+            ok:true,
+            data:product
+        })
+        
+
+    } catch (error) {
+      next(error)  
+    }
+}
 
 // Crear producto (solo admin o super admin)
 const createProduct = async (req, res, next) => {
@@ -154,11 +223,51 @@ const updateProduct = async (req, res, next) => {
 }
 
 // Eliminar un producto
+const deleteProduct = async (req,res,next) => {
+    try {
+      // 1. Buscar el id del producto  
+      const {id} = req.params;
 
+      // 2. Buscar el producto en Mongo
+      const product = await Product.findById(id);
+
+      // 3. Valido que exista
+      if(!product){
+        return res.status(404).json({
+            ok:false,
+            message: 'Producto no encontrado'
+        })
+      }
+      
+    // 4. Ubicar las rutas de todas las imagenes del producto   
+      const imagesRoutes = product.images.map(img => 
+        getCompleteRoute(img, 'products')
+    );
+
+    // 5. Eliminamos las imagenes usando las rutas que guardamos antes
+    deleteFiles(imagesRoutes)
+
+    // 6. Eliminar el producto
+    await Product.findByIdAndDelete(id)
+
+    // 7. Respuesta al cliente
+    return res.status(200).json({
+        ok:true,
+        message:'Producto eliminado 🗑'
+    })     
+      
+        
+    } catch (error) {
+        next(error)
+    }
+}
 
 
 module.exports = {
     createProduct,
     getAllProducts,
-    updateProduct
+    updateProduct,
+    deleteProduct,
+    searchProduct,
+    getProductById
 }
