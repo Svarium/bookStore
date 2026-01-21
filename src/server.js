@@ -13,6 +13,7 @@ const usersRoutes = require("./routes/user.routes");
 const connectDB = require("./config/database");
 const errorHandler = require("./middlewares/errorHandler");
 const createSuperAdmin = require("./utils/createSuperAdmin");
+const {globalLimiter} = require("./middlewares/rateLimiter");
 
 const app = express();
 
@@ -25,6 +26,7 @@ createSuperAdmin();
 
 //MIDDLEWARES
 app.use(morgan("dev"));
+app.use(globalLimiter);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({extended: true})); //PARA QUE EXPRESS PUEDA LEER LOS DATOS DE FORMULARIOS

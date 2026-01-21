@@ -4,14 +4,15 @@ const { register, login, getAllUsers, deleteUser, updateUserRole, verifyEmail, l
 const { validateRegister, validateLogin, validateUserId, validateUpdateRole, validateSuperAdmin, validateVerifyEmail } = require("../middlewares/validator");
 const { uploadProfile } = require("../config/multer");
 const { verifyAuth } = require("../middlewares/auth");
+const { authLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 //Llego con /auth/ - esta es la ruta raíz de este enrutador
 
 //ENDPOINTS PUBLICOS
-router.post("/register", uploadProfile, validateRegister, register);
-router.post("/verify-email", validateVerifyEmail, verifyEmail);
-router.post("/login", validateLogin, login);
+router.post("/register", authLimiter,  uploadProfile, validateRegister, register);
+router.post("/verify-email",authLimiter, validateVerifyEmail, verifyEmail);
+router.post("/login",authLimiter, validateLogin, login);
 
 //ENDPOINTS PRIVADOS
 router.post("/logout",verifyAuth, logout);
