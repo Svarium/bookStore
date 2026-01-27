@@ -3,6 +3,8 @@ require("dotenv").config();
 const morgan = require("morgan");
 const path = require('path');
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
+
 
 //IMPORTAR LOS ARCHIVOS DE LOS ENRUTADORES
 const productRoutes = require("./routes/product.routes");
@@ -13,7 +15,7 @@ const usersRoutes = require("./routes/user.routes");
 const connectDB = require("./config/database");
 const errorHandler = require("./middlewares/errorHandler");
 const createSuperAdmin = require("./utils/createSuperAdmin");
-const {globalLimiter} = require("./middlewares/rateLimiter");
+const { globalLimiter } = require("./middlewares/rateLimiter");
 
 const app = express();
 
@@ -25,11 +27,15 @@ createSuperAdmin();
 
 
 //MIDDLEWARES
+app.use(cors({
+    origin: process.env.URL_FRONTEND, // URL de tu app de React con Vite o sino para acceso universal usar "*" y para varios origenes usar ["http://localhost:5173", "http://localhost:3000"]
+    credentials: true // Permitir el envío de cookies
+}));
 app.use(morgan("dev"));
 app.use(globalLimiter);
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.urlencoded({extended: true})); //PARA QUE EXPRESS PUEDA LEER LOS DATOS DE FORMULARIOS
+app.use(express.urlencoded({ extended: true })); //PARA QUE EXPRESS PUEDA LEER LOS DATOS DE FORMULARIOS
 
 
 //Servir archivos estáticos (imágenes u otros archivos)
